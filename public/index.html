@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload and Text Extraction</title>
+    <style>
+        /* General reset and box sizing */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        /* Styling for the file input */
+        #fileInput {
+            width: 100%;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #4CAF50;
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+            background-color: #444;
+            margin-bottom: 20px;
+        }
+
+        /* Adding hover and focus effect to file input */
+        #fileInput:hover {
+            border-color: #45a049;
+        }
+
+        #fileInput:focus {
+            outline: none;
+            border-color: #388e3c;
+            background-color: #555;
+        }
+
+        /* Styling for loading and error messages */
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #4CAF50;
+        }
+
+        #error {
+            display: none;
+            color: #e74c3c;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        /* Styling for the output text */
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 20px;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            color: #fff;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        /* Button styling */
+        .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+
+        .upload-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload PDF or Image for Text Extraction</h1>
+        <input type="file" id="fileInput" accept=".pdf, image/*">
+        <div id="loading">Processing...</div>
+        <div id="error">An error occurred. Please try again.</div>
+        <button class="upload-btn" id="uploadButton" disabled>Upload File</button>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const loading = document.getElementById("loading");
+        const error = document.getElementById("error");
+        const output = document.getElementById("output");
+        const uploadButton = document.getElementById("uploadButton");
+
+        // Enable the upload button when a file is selected
+        fileInput.addEventListener("change", () => {
+            uploadButton.disabled = !fileInput.files.length;
+        });
+
+        uploadButton.addEventListener("click", uploadFile);
+
+        async function uploadFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            loading.style.display = "block";
+            error.style.display = "none";
+            output.textContent = "";
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("https://backend-repo-a6ce.onrender.com/extract-text", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("File upload failed");
+
+                const data = await response.json();
+                output.textContent = data.text || "No text extracted.";
+            } catch (err) {
+                console.error('Error during file upload:', err);
+                error.style.display = "block";
+            } finally {
+                loading.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
